@@ -6,9 +6,9 @@
  */
 #include "system_timers.h"
 
-esp_timer_handle_t timer_handle;
+esp_timer_handle_t gSystemTimer;
 
-esp_timer_create_args_t timer_config = {
+esp_timer_create_args_t gSystemTimerConfig = {
         .callback = &TIMERS_Callback,
         .arg = NULL,
         .name = "gptimer"
@@ -16,15 +16,18 @@ esp_timer_create_args_t timer_config = {
 
 void (*TimerCallback)();
 
+/*
+ *Run the callback registered
+ */
 void TIMERS_Callback(void* arg)
 {
 	TimerCallback();
 }
 
-void TIMERS_Init()
+void TIMERS_Init(int period)
 {
-	esp_timer_create(&timer_config, &timer_handle);
-	esp_timer_start_periodic(timer_handle, 1000);
+	esp_timer_create(&gSystemTimerConfig, &gSystemTimer);
+	esp_timer_start_periodic(gSystemTimer, period*1000);
 }
 
 void TIMERS_RegisterCallback(void(*cb)())

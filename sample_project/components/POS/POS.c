@@ -15,8 +15,9 @@ void POS_InsertTask(Task_t* newTask)
 {
 	if(gActualPOS.lastID < MAX_NUMBER_TASKS)
 	{
-		tasks[gActualPOS.lastID].timer = newTask->timer;
+		tasks[gActualPOS.lastID].runTime = newTask->runTime;
 		tasks[gActualPOS.lastID].callback = newTask->callback;
+		tasks[gActualPOS.lastID].lastRun = newTask->lastRun;
 		gActualPOS.lastID++;
 	}
 }
@@ -26,12 +27,13 @@ void POS_InsertTask(Task_t* newTask)
  */
 void POS_Run()
 {
-	unsigned long int startTaskTimer;
 	for(int i = 0; i < gActualPOS.lastID ; i++)
 	{
-		startTaskTimer = gActualPOS.sysTick;
-		tasks[i].callback();
-		while(gActualPOS.sysTick - startTaskTimer < tasks[i].timer);
+		if(tasks[i].runTime <= gActualPOS.sysTick - tasks[i].lastRun)
+		{
+			tasks[i].callback();
+			tasks[i].lastRun = gActualPOS.sysTick;
+		}
 	}
 }
 
@@ -46,7 +48,7 @@ void POS_SysTick()
 /*
  * Update the internal increment depending of the timer used to update the systick
  */
-void POS_SetSysTickIncrement(unsigned long int newSystickIncrement)
+void POS_SetSysTickIncrement(uint32_t newSystickIncrement)
 {
 	gActualPOS.sysTickIncrement = newSystickIncrement;
 }
@@ -54,7 +56,7 @@ void POS_SetSysTickIncrement(unsigned long int newSystickIncrement)
 /*
  * Return the value of the internal timer used by the OS
  */
-unsigned long int POS_GetSysTick()
+uint32_t POS_GetSysTick()
 {
 	return gActualPOS.sysTick;
 }

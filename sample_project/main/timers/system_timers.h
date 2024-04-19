@@ -13,7 +13,7 @@
 
 void TIMERS_Callback(void* arg);
 
-void TIMERS_Init();
+void TIMERS_Init(int period);
 
 void TIMERS_RegisterCallback(void(*cb)());
 
