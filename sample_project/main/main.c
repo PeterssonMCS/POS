@@ -1,58 +1,46 @@
 #include <stdio.h>
 #include <POS.h>
 #include "timers/system_timers.h"
+#include "gpio_wrapper/gpio_wrapper.h"
+#include "useful_macros.h"
+#include "adc_wrapper/adc_wrapper.h"
 
 #define OS_TICK 1
 
-typedef union
+BUTTON_LIST(GPIO_LIST)
+OUTPUT_LIST(GPIO_LIST)
+
+void keyboard_task()
 {
-	struct
-	{
-		int event_1 : 1;
-		int event_2 : 1;
-		int event_3 : 1;
-		int event_4 : 1;
-		int event_5 : 1;
-		int event_6 : 1;
-		int event_7 : 1;
-		int event_8 : 1;
-		int event_9 : 1;
-		int event_10 : 1;
-		int event_11 : 1;
-		int event_12 : 1;
-		int event_13 : 1;
-		int event_14 : 1;
-		int event_15 : 1;
-		int event_16 : 1;
-		int event_17 : 1;
-		int event_18 : 1;
-		int event_19 : 1;
-		int event_20 : 1;
-		int event_21 : 1;
-		int event_22 : 1;
-		int event_23 : 1;
-		int event_24 : 1;
-		int event_25 : 1;
-		int event_26 : 1;
-		int event_27 : 1;
-		int event_28 : 1;
-		int event_29 : 1;
-		int event_30 : 1;
-		int event_31 : 1;
-	};
-	int all_events;
-}SYSTEM_EVENTS_t;
+	BUTTON_LIST(GET_BUTTON)
+}
 
 void task1()
 {
-	printf("Hello meu bom\n");
-	printf("%ld\n",POS_GetSysTick());
+	static bool state = false;
+	GPIO_SetOutputLevel(PIN_OUTPUT_1 , state);
+	state = state == false? true : false;
 }
 
 void task2()
 {
-	printf("Hello meu bom 2 \n");
-	printf("%ld\n",POS_GetSysTick());
+	static bool state = false;
+	GPIO_SetOutputLevel(PIN_OUTPUT_2 , state);
+	state = state == false? true : false;
+}
+
+void task3()
+{
+	static bool state = false;
+	GPIO_SetOutputLevel(PIN_OUTPUT_3 , state);
+	state = state == false? true : false;
+}
+
+void task5()
+{
+	int32_t value_y = ADC_Read(1);
+	int32_t value_x = ADC_Read(0);
+	printf("x: %lu y: %lu \n" , value_x , value_y);
 }
 
 void app_main(void)
@@ -60,9 +48,16 @@ void app_main(void)
 	TIMERS_RegisterCallback(&POS_SysTick);
 	POS_SetSysTickIncrement(OS_TICK);
 	TIMERS_Init(OS_TICK);
+	ADC_Init();
 
-	NEW_TASK(TASK1 , task1 , 1000)
-	NEW_TASK(TASK2 , task2 , 2000)
+	NEW_TASK(KEYBOARD , keyboard_task , 1)
+//	NEW_TASK(TASK1 , task1 , 300)
+//	NEW_TASK(TASK2 , task2 , 200)
+//	NEW_TASK(TASK3 , task3 , 100)
+	NEW_TASK(TASK5 , task5 , 1000)
+
+	BUTTON_LIST(SET_BUTTON)
+	OUTPUT_LIST(SET_OUTPUT)
 
 	while(1)
 	{
